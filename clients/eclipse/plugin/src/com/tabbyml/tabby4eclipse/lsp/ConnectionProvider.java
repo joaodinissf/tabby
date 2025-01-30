@@ -152,15 +152,18 @@ public class ConnectionProvider extends ProcessStreamConnectionProvider {
 			return null;
 		}
 
-		final String nodeJsRootFolder = "C:\\Program Files\\Node.js";
-		final String targetNodeJsVersion = "node-v20";
-		File nodeRoot = new File(nodeJsRootFolder);
-		for (File entry : nodeRoot.listFiles()) {
-			if (entry.isDirectory() && entry.getName().toLowerCase(Locale.ENGLISH).startsWith(targetNodeJsVersion)) {
-				try {
-					return entry.toPath().resolve("node.exe").toFile();
-				} catch (InvalidPathException | UnsupportedOperationException e) {
-					logger.error("Could not find Node.js executable on Windows environment.", e);
+		final String nodeJsRootPath = "C:\\Program Files\\Node.js";
+		final String nodeJsTargetVersion = "node-v20";
+		final File nodeJsRootFile = new File(nodeJsRootPath);
+		if (nodeJsRootFile.isDirectory()) {
+			for (File entry : nodeJsRootFile.listFiles()) {
+				if (entry.isDirectory()
+						&& entry.getName().toLowerCase(Locale.ENGLISH).startsWith(nodeJsTargetVersion)) {
+					try {
+						return entry.toPath().resolve("node.exe").toFile();
+					} catch (InvalidPathException | UnsupportedOperationException e) {
+						logger.error("Could not find Node.js executable on Windows environment.", e);
+					}
 				}
 			}
 		}
