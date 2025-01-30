@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.InvalidPathException;
 import java.util.List;
+import java.util.Locale;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -33,6 +35,7 @@ public class ConnectionProvider extends ProcessStreamConnectionProvider {
 			// Find node executable
 			File nodeExecutableFile = null;
 
+			// Default: Find Node.js specified in extension settings
 			String nodePathFromPreference = PreferencesService.getInstance().getNodeBinaryPath();
 			if (nodePathFromPreference != null && !nodePathFromPreference.isEmpty()) {
 				String nodePath = nodePathFromPreference.replaceFirst("~", System.getProperty("user.home"));
@@ -45,6 +48,7 @@ public class ConnectionProvider extends ProcessStreamConnectionProvider {
 				}
 			}
 
+			// Fallback 1: Find Node.js specified in PATH environment variable
 			if (nodeExecutableFile == null) {
 				String systemPath = System.getenv("PATH");
 				logger.info("Finding node executable in system paths: " + systemPath);
@@ -58,6 +62,11 @@ public class ConnectionProvider extends ProcessStreamConnectionProvider {
 						}
 					}
 				}
+			}
+
+			// Fallback 2: Find Node.js specified in extension settings
+			if (nodeExecutableFile == null) {
+				nodeExecutableFile = findNodeExecutableOnWindows();
 			}
 
 			if (nodeExecutableFile == null) {
@@ -136,5 +145,26 @@ public class ConnectionProvider extends ProcessStreamConnectionProvider {
 		clientCapabilities.setTextDocument(textDocumentClientCapabilities);
 		clientCapabilities.setTabby(tabbyClientCapabilities);
 		return clientCapabilities;
+	}
+
+	private File findNodeExecutableOnWindows() {
+		if (!Utils.isWindows()) {
+			return null;
+		}
+
+		final String nodeJsRootFolder = "C:\\Program Files\\Node.js";
+		final String targetNodeJsVersion = "node-v20";
+		File nodeRoot = new File(nodeJsRootFolder);
+		for (File entry : nodeRoot.listFiles()) {
+			if (entry.isDirectory() && entry.getName().toLowerCase(Locale.ENGLISH).startsWith(targetNodeJsVersion)) {
+				try {
+					return entry.toPath().resolve("node.exe").toFile();
+				} catch (InvalidPathException | UnsupportedOperationException e) {
+					logger.error("Could not find Node.js executable on Windows environment.", e);
+				}
+			}
+		}
+
+		return null;
 	}
 }
