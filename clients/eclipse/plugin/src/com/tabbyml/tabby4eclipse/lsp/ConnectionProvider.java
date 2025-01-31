@@ -65,6 +65,7 @@ public class ConnectionProvider extends ProcessStreamConnectionProvider {
 			}
 
 			// Fallback 2: Find Node.js specified in extension settings
+			// TODO 20250131 Remove this ASAP, for more details see the function's Javadoc
 			if (nodeExecutableFile == null) {
 				nodeExecutableFile = findNodeExecutableOnWindows();
 			}
@@ -147,6 +148,16 @@ public class ConnectionProvider extends ProcessStreamConnectionProvider {
 		return clientCapabilities;
 	}
 
+	/*
+	 * TODO 20250131 This is a hacky workaround, and should be removed as soon as
+	 * possible.
+	 *
+	 * It will be possible to remove this workaround as soon as the symlink path for
+	 * major versions of Node.js remains constant. A change request to this end has
+	 * been submitted as of 20250131. Once this change is implemented, this fork can
+	 * be removed and the extension can be directly compiled from the upstream
+	 * repository again.
+	 */
 	private File findNodeExecutableOnWindows() {
 		if (!Utils.isWindows()) {
 			return null;
